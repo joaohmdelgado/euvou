@@ -1,0 +1,139 @@
+import { Event, EventCategory, Participant } from './types';
+import { addDays, setHours, subHours } from 'date-fns';
+
+// Helper to generate fake participants
+const generateParticipants = (count: number): Participant[] => {
+  const participants: Participant[] = [];
+  const names = ['Ana Silva', 'Bruno Santos', 'Carla Dias', 'Daniel Oliveira', 'Elena Costa', 'Fábio Lima', 'Gabriela Rocha', 'Hugo Souza'];
+  const cities = ['São Paulo', 'Rio de Janeiro', 'Curitiba', 'Belo Horizonte'];
+  
+  for (let i = 0; i < count; i++) {
+    const isMale = i % 2 !== 0;
+    participants.push({
+      id: `part-${i}`,
+      name: names[i % names.length],
+      age: 20 + Math.floor(Math.random() * 15),
+      gender: isMale ? 'Masculino' : 'Feminino',
+      originCity: cities[i % cities.length],
+      photoUrl: `https://i.pravatar.cc/150?u=${i + 100}`,
+      instagramHandle: `@${names[i % names.length].toLowerCase().replace(' ', '.')}`,
+      confirmedAt: subHours(new Date(), i),
+    });
+  }
+  return participants;
+};
+
+export const MOCK_EVENTS: Event[] = [
+  {
+    id: '1',
+    title: 'Festival de Verão 2024',
+    description: 'O maior festival de música independente da cidade. Venha curtir bandas locais, food trucks e muita arte ao ar livre. Um evento para toda a família e amigos.',
+    city: 'São Paulo',
+    date: addDays(new Date(), 2),
+    startTime: '14:00',
+    locationName: 'Parque Ibirapuera',
+    address: 'Av. Pedro Álvares Cabral - Vila Mariana, São Paulo - SP',
+    coordinates: { lat: -23.5874, lng: -46.6576 },
+    category: EventCategory.SHOW,
+    price: 0,
+    duration: '8 horas',
+    imageUrl: 'https://images.unsplash.com/photo-1533174072545-e8d4aa97edf9?auto=format&fit=crop&q=80&w=1000',
+    participantsGoal: 5000,
+    organizer: 'SP Cultura',
+    participants: generateParticipants(124),
+  },
+  {
+    id: '2',
+    title: 'Tech Summit & Networking',
+    description: 'Conecte-se com líderes da indústria de tecnologia. Palestras sobre AI, desenvolvimento web e o futuro das startups no Brasil.',
+    city: 'Curitiba',
+    date: addDays(new Date(), 5),
+    startTime: '19:00',
+    locationName: 'Expo Unimed',
+    address: 'R. Prof. Pedro Viriato Parigot de Souza, 5300',
+    coordinates: { lat: -25.4432, lng: -49.3547 },
+    category: EventCategory.NETWORKING,
+    price: 150,
+    duration: '4 horas',
+    imageUrl: 'https://images.unsplash.com/photo-1544531586-fde5298cdd40?auto=format&fit=crop&q=80&w=1000',
+    ticketLink: 'https://example.com',
+    participantsGoal: 300,
+    organizer: 'Tech PR',
+    participants: generateParticipants(45),
+  },
+  {
+    id: '3',
+    title: 'Maratona Noturna',
+    description: 'Uma corrida eletrizante pelas ruas da cidade sob a luz da lua. Percursos de 5km e 10km para todos os níveis.',
+    city: 'Rio de Janeiro',
+    date: addDays(new Date(), 10),
+    startTime: '20:00',
+    locationName: 'Aterro do Flamengo',
+    address: 'Av. Infante Dom Henrique, Rio de Janeiro - RJ',
+    coordinates: { lat: -22.9221, lng: -43.1723 },
+    category: EventCategory.SPORTS,
+    price: 80,
+    duration: '3 horas',
+    imageUrl: 'https://images.unsplash.com/photo-1552674605-469523fbaf34?auto=format&fit=crop&q=80&w=1000',
+    participantsGoal: 2000,
+    organizer: 'Rio Run',
+    participants: generateParticipants(310),
+  },
+  {
+    id: '4',
+    title: 'Feira Gastronômica: Sabores do Mundo',
+    description: 'Experimente pratos típicos de mais de 20 países em um só lugar. Música ao vivo e workshops de culinária.',
+    city: 'São Paulo',
+    date: addDays(new Date(), 1),
+    startTime: '12:00',
+    locationName: 'Memorial da América Latina',
+    address: 'Av. Mário de Andrade, 664 - Barra Funda',
+    coordinates: { lat: -23.5268, lng: -46.6663 },
+    category: EventCategory.FOOD,
+    price: 0,
+    duration: '10 horas',
+    imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=1000',
+    participantsGoal: 1500,
+    organizer: 'Eventos Gastrô',
+    participants: generateParticipants(88),
+  },
+  {
+    id: '5',
+    title: 'Workshop de Fotografia Urbana',
+    description: 'Aprenda técnicas de composição e iluminação natural em ambiente urbano. Traga sua câmera ou celular!',
+    city: 'Belo Horizonte',
+    date: addDays(new Date(), 3),
+    startTime: '09:00',
+    locationName: 'Praça da Liberdade',
+    address: 'Praça da Liberdade, s/n - Savassi',
+    coordinates: { lat: -19.9320, lng: -43.9380 },
+    category: EventCategory.CULTURAL,
+    price: 50,
+    duration: '5 horas',
+    imageUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=1000',
+    participantsGoal: 30,
+    organizer: 'Foto Clube BH',
+    participants: generateParticipants(12),
+  },
+  {
+    id: '6',
+    title: 'Sunset Rooftop Party',
+    description: 'Música eletrônica, drinks exclusivos e o melhor pôr do sol da cidade. Line-up com DJs internacionais.',
+    city: 'Rio de Janeiro',
+    date: addDays(new Date(), 0), // Today
+    startTime: '16:00',
+    locationName: 'Hotel Fasano',
+    address: 'Av. Vieira Souto, 80 - Ipanema',
+    coordinates: { lat: -22.9870, lng: -43.2008 },
+    category: EventCategory.PARTY,
+    price: 250,
+    duration: '8 horas',
+    imageUrl: 'https://images.unsplash.com/photo-1514525253440-b393452e2386?auto=format&fit=crop&q=80&w=1000',
+    ticketLink: 'https://example.com',
+    participantsGoal: 150,
+    organizer: 'High Life Rio',
+    participants: generateParticipants(76),
+  }
+];
+
+export const CITIES = ['Todas', 'São Paulo', 'Rio de Janeiro', 'Curitiba', 'Belo Horizonte'];
