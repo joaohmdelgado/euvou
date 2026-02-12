@@ -3,7 +3,7 @@ import { Event, Participant } from '../types';
 import { X, Calendar, MapPin, Clock, Tag, ExternalLink, Instagram, Users, Share2, Heart } from 'lucide-react';
 import { Button } from './ui/Button';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import ptBR from 'date-fns/locale/pt-BR';
 
 interface EventDetailsProps {
   event: Event;

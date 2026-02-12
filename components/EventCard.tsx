@@ -2,7 +2,7 @@ import React from 'react';
 import { Event } from '../types';
 import { Calendar, MapPin, Users } from 'lucide-react';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import ptBR from 'date-fns/locale/pt-BR';
 
 interface EventCardProps {
   event: Event;

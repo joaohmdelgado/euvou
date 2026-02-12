@@ -3,7 +3,6 @@ import { X, Upload, CheckCircle, Calendar, MapPin, DollarSign, User, FileText, I
 import { Button } from './ui/Button';
 import { EventCategory } from '../types';
 import { CITIES } from '../constants';
-import { parse, isValid } from 'date-fns';
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -58,10 +57,11 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
     setLoading(true);
 
     try {
-      // Parse date and time
-      const dateObj = parse(formData.date + ' ' + formData.startTime, 'yyyy-MM-dd HH:mm', new Date());
+      // Parse date and time using native Date with ISO format
+      // formData.date is YYYY-MM-DD, startTime is HH:mm
+      const dateObj = new Date(`${formData.date}T${formData.startTime}`);
       
-      if (!isValid(dateObj)) {
+      if (isNaN(dateObj.getTime())) {
         alert("Data ou horário inválidos");
         setLoading(false);
         return;

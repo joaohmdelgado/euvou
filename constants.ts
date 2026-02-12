@@ -1,5 +1,17 @@
 import { Event, EventCategory, Participant } from './types';
-import { addDays, setHours, subHours } from 'date-fns';
+
+// Helper to manipulate dates without external dependency issues
+const addDays = (date: Date, days: number) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
+const subHours = (date: Date, hours: number) => {
+  const result = new Date(date);
+  result.setHours(result.getHours() - hours);
+  return result;
+};
 
 // Helper to generate fake participants
 const generateParticipants = (count: number): Participant[] => {
