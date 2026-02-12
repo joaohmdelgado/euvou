@@ -3,6 +3,7 @@ import { Navbar } from './components/Navbar';
 import { EventCard } from './components/EventCard';
 import { EventDetails } from './components/EventDetails';
 import { RsvpModal } from './components/RsvpModal';
+import { CreateEventModal } from './components/CreateEventModal';
 import { eventService } from './services/eventService';
 import { Event, EventCategory, Participant } from './types';
 import { Search, MapPin, Filter, Loader2 } from 'lucide-react';
@@ -13,6 +14,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isRsvpOpen, setIsRsvpOpen] = useState(false);
+  const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -51,6 +53,14 @@ export default function App() {
     setIsRsvpOpen(false);
   };
 
+  const handleCreateEventClick = () => {
+    setIsCreateEventOpen(true);
+  };
+
+  const handleCloseCreateEvent = () => {
+    setIsCreateEventOpen(false);
+  };
+
   const handleConfirmRsvp = async (participantData: Partial<Participant>) => {
     if (!selectedEvent) return;
     
@@ -64,6 +74,16 @@ export default function App() {
     } catch (error) {
       console.error("RSVP failed", error);
       alert("Erro ao confirmar presença. Tente novamente.");
+    }
+  };
+
+  const handleCreateEventSubmit = async (eventData: Omit<Event, 'id' | 'participants'>) => {
+    try {
+      const newEvent = await eventService.create(eventData);
+      setEvents(prev => [newEvent, ...prev]);
+    } catch (error) {
+      console.error("Create event failed", error);
+      alert("Erro ao criar evento. Tente novamente.");
     }
   };
 
@@ -83,7 +103,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      <Navbar />
+      <Navbar onCreateClick={handleCreateEventClick} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
@@ -211,6 +231,12 @@ export default function App() {
           onConfirm={handleConfirmRsvp}
         />
       )}
+
+      <CreateEventModal
+        isOpen={isCreateEventOpen}
+        onClose={handleCloseCreateEvent}
+        onSubmit={handleCreateEventSubmit}
+      />
     </div>
   );
 }

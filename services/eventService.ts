@@ -12,6 +12,21 @@ export const eventService = {
     });
   },
 
+  create: async (eventData: Omit<Event, 'id' | 'participants'>): Promise<Event> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const newEvent: Event = {
+          ...eventData,
+          id: String(Date.now()),
+          participants: [],
+        };
+        // Add to beginning of list
+        eventsStore = [newEvent, ...eventsStore];
+        resolve(newEvent);
+      }, 800);
+    });
+  },
+
   addParticipant: async (eventId: string, participantData: Omit<Participant, 'id' | 'confirmedAt'>): Promise<Event> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {

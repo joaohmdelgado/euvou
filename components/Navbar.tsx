@@ -2,7 +2,11 @@ import React from 'react';
 import { CalendarSearch } from 'lucide-react';
 import { Button } from './ui/Button';
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  onCreateClick: () => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ onCreateClick }) => {
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,7 +26,7 @@ export const Navbar: React.FC = () => {
              <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
                 Login
              </Button>
-             <Button size="sm">
+             <Button size="sm" onClick={onCreateClick}>
                 Criar Evento
              </Button>
           </div>
