@@ -21,3 +21,8 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
+
+// Initialize Firebase Auth
+import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
