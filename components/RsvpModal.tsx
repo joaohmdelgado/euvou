@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { X, Upload, Instagram, CheckCircle } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Event, Participant } from '../types';
+import { cloudinaryService } from '../services/cloudinaryService';
 
 interface RsvpModalProps {
   event: Event;
@@ -48,6 +49,19 @@ export const RsvpModal: React.FC<RsvpModalProps> = ({ event, isOpen, onClose, on
     setLoading(true);
 
     try {
+      let finalPhotoUrl = formData.photoPreview || 'https://i.pravatar.cc/150?u=default';
+
+      if (formData.photoFile) {
+        try {
+          finalPhotoUrl = await cloudinaryService.uploadImage(formData.photoFile);
+        } catch (uploadError) {
+          console.error("Photo upload failed", uploadError);
+          alert("Falha ao fazer upload da foto. Tente novamente.");
+          setLoading(false);
+          return;
+        }
+      }
+
       // Create a participant object
       const participantData: Partial<Participant> = {
         name: formData.name,
@@ -55,7 +69,7 @@ export const RsvpModal: React.FC<RsvpModalProps> = ({ event, isOpen, onClose, on
         gender: formData.gender as any,
         originCity: formData.originCity,
         instagramHandle: formData.instagramHandle,
-        photoUrl: formData.photoPreview || 'https://i.pravatar.cc/150?u=default' // Fallback
+        photoUrl: finalPhotoUrl
       };
 
       await onConfirm(participantData);
@@ -74,13 +88,13 @@ export const RsvpModal: React.FC<RsvpModalProps> = ({ event, isOpen, onClose, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-      
+
       <div className="relative bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        
+
         {step === 'form' ? (
           <>
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
@@ -92,7 +106,7 @@ export const RsvpModal: React.FC<RsvpModalProps> = ({ event, isOpen, onClose, on
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="text-center mb-4">
-                <div 
+                <div
                   className="w-24 h-24 rounded-full bg-gray-100 mx-auto mb-2 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 cursor-pointer hover:border-brand-400 transition-colors relative"
                   onClick={() => fileInputRef.current?.click()}
                 >
@@ -105,21 +119,21 @@ export const RsvpModal: React.FC<RsvpModalProps> = ({ event, isOpen, onClose, on
                     </div>
                   )}
                 </div>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
-                  className="hidden" 
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="hidden"
                   accept="image/*"
-                  required 
+                  required
                 />
                 <p className="text-xs text-gray-500">Clique para adicionar uma foto (obrigatório)</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
@@ -132,8 +146,8 @@ export const RsvpModal: React.FC<RsvpModalProps> = ({ event, isOpen, onClose, on
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Idade</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     name="age"
                     value={formData.age}
                     onChange={handleInputChange}
@@ -144,7 +158,7 @@ export const RsvpModal: React.FC<RsvpModalProps> = ({ event, isOpen, onClose, on
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Gênero</label>
-                  <select 
+                  <select
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
@@ -160,8 +174,8 @@ export const RsvpModal: React.FC<RsvpModalProps> = ({ event, isOpen, onClose, on
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Cidade de Origem</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="originCity"
                   value={formData.originCity}
                   onChange={handleInputChange}
@@ -177,8 +191,8 @@ export const RsvpModal: React.FC<RsvpModalProps> = ({ event, isOpen, onClose, on
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                     <Instagram className="w-4 h-4" />
                   </div>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     name="instagramHandle"
                     value={formData.instagramHandle}
                     onChange={handleInputChange}
@@ -191,7 +205,7 @@ export const RsvpModal: React.FC<RsvpModalProps> = ({ event, isOpen, onClose, on
               <Button type="submit" fullWidth disabled={loading} size="lg">
                 {loading ? 'Confirmando...' : `Confirmar Presença em ${event.title}`}
               </Button>
-              
+
               <p className="text-xs text-center text-gray-400 mt-2">
                 Ao confirmar, seu perfil ficará visível na lista do evento.
               </p>
