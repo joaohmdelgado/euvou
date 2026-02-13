@@ -116,7 +116,26 @@ export const eventService = {
       saveLocalEvents(events);
 
       return events;
-    } catch (error) {
+    } catch (error: any) {
+      // If index is missing, try client-side filtering
+      if (error?.message?.includes('index') || error?.code === 'failed-precondition') {
+        try {
+          console.warn("Falling back to client-side filtering due to missing index...");
+          const eventsRef = collection(db, COLLECTION_NAME);
+          const q = query(eventsRef, orderBy('date', 'asc')); // Simpler query
+          const querySnapshot = await getDocs(q);
+          const events: Event[] = [];
+          querySnapshot.forEach((doc) => {
+            const e = convertDocToEvent(doc);
+            if (e.status === 'approved') events.push(e);
+          });
+          saveLocalEvents(events);
+          return events;
+        } catch (fallbackError) {
+          console.error("Fallback query failed:", fallbackError);
+        }
+      }
+
       handleFirebaseError(error, 'getAll');
       const local = getLocalEvents();
       return local.filter(e => e.status === 'approved' || !e.status);
@@ -181,6 +200,14 @@ export const eventService = {
       if (!db) throw new Error("Firebase not initialized");
       const eventRef = doc(db, COLLECTION_NAME, eventId);
       await updateDoc(eventRef, { status });
+
+      // Keep local storage in sync
+      const events = getLocalEvents();
+      const target = events.find(e => e.id === eventId);
+      if (target) {
+        target.status = status;
+        saveLocalEvents(events);
+      }
     } catch (error) {
       handleFirebaseError(error, 'updateStatus');
       // Local fallback
