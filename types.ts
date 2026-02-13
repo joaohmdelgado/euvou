@@ -40,6 +40,7 @@ export interface Event {
   participantsGoal: number;
   organizer: string;
   participants: Participant[];
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 export interface FilterState {

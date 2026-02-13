@@ -12,7 +12,9 @@ import {
   Timestamp,
   query,
   orderBy,
-  limit
+  limit,
+  where,
+  deleteDoc
 } from 'firebase/firestore';
 
 const COLLECTION_NAME = 'events';
@@ -29,6 +31,7 @@ const getLocalEvents = (): Event[] => {
     return JSON.parse(data).map((e: any) => ({
       ...e,
       date: new Date(e.date),
+      status: e.status || 'approved', // Backfill for existing mock data
       participants: (e.participants || []).map((p: any) => ({
         ...p,
         confirmedAt: new Date(p.confirmedAt)
@@ -79,22 +82,28 @@ export const eventService = {
       if (!db) throw new Error("Firebase not initialized");
 
       const eventsRef = collection(db, COLLECTION_NAME);
-      const q = query(eventsRef, orderBy('date', 'asc'));
+      // Only fetch approved events for the main feed
+      const q = query(eventsRef, where('status', '==', 'approved'), orderBy('date', 'asc'));
       const querySnapshot = await getDocs(q);
 
       // Seeding logic for Firestore
       if (querySnapshot.empty) {
-        console.log("Database empty. Seeding mock data to Firestore...");
-        try {
-          const seedPromises = MOCK_EVENTS.map(event => {
-            const { id, ...eventData } = event;
-            return addDoc(eventsRef, eventData);
-          });
-          await Promise.all(seedPromises);
-          return eventService.getAll();
-        } catch (seedError) {
-          handleFirebaseError(seedError, 'Seeding');
-          return MOCK_EVENTS;
+        const allEventsQ = query(eventsRef, limit(1));
+        const allSnap = await getDocs(allEventsQ);
+
+        if (allSnap.empty) {
+          console.log("Database empty. Seeding mock data to Firestore...");
+          try {
+            const seedPromises = MOCK_EVENTS.map(event => {
+              const { id, ...eventData } = event;
+              return addDoc(eventsRef, { ...eventData, status: 'approved' });
+            });
+            await Promise.all(seedPromises);
+            return eventService.getAll();
+          } catch (seedError) {
+            handleFirebaseError(seedError, 'Seeding');
+            return MOCK_EVENTS.map(e => ({ ...e, status: 'approved' }));
+          }
         }
       }
 
@@ -109,6 +118,26 @@ export const eventService = {
       return events;
     } catch (error) {
       handleFirebaseError(error, 'getAll');
+      const local = getLocalEvents();
+      return local.filter(e => e.status === 'approved' || !e.status);
+    }
+  },
+
+  getAllAdmin: async (): Promise<Event[]> => {
+    try {
+      if (!db) throw new Error("Firebase not initialized");
+      const eventsRef = collection(db, COLLECTION_NAME);
+      // Admin sees all events, ordered by date
+      const q = query(eventsRef, orderBy('date', 'asc'));
+      const querySnapshot = await getDocs(q);
+
+      const events: Event[] = [];
+      querySnapshot.forEach((doc) => {
+        events.push(convertDocToEvent(doc));
+      });
+      return events;
+    } catch (error) {
+      handleFirebaseError(error, 'getAllAdmin');
       return getLocalEvents();
     }
   },
@@ -117,21 +146,24 @@ export const eventService = {
     const fallbackEvent: Event = {
       ...eventData,
       id: `local-${Date.now()}`,
-      participants: []
-    };
+      participants: [],
+      status: 'pending'
+    } as Event;
 
     try {
       if (!db) throw new Error("Firebase not initialized");
 
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
         ...eventData,
-        participants: []
+        participants: [],
+        status: 'pending'
       });
 
       return {
         id: docRef.id,
         ...eventData,
-        participants: []
+        participants: [],
+        status: 'pending'
       } as Event;
 
     } catch (error) {
@@ -141,6 +173,36 @@ export const eventService = {
       const updatedEvents = [fallbackEvent, ...currentEvents];
       saveLocalEvents(updatedEvents);
       return fallbackEvent;
+    }
+  },
+
+  updateStatus: async (eventId: string, status: 'approved' | 'rejected'): Promise<void> => {
+    try {
+      if (!db) throw new Error("Firebase not initialized");
+      const eventRef = doc(db, COLLECTION_NAME, eventId);
+      await updateDoc(eventRef, { status });
+    } catch (error) {
+      handleFirebaseError(error, 'updateStatus');
+      // Local fallback
+      const events = getLocalEvents();
+      const target = events.find(e => e.id === eventId);
+      if (target) {
+        target.status = status;
+        saveLocalEvents(events);
+      }
+    }
+  },
+
+  delete: async (eventId: string): Promise<void> => {
+    try {
+      if (!db) throw new Error("Firebase not initialized");
+      await deleteDoc(doc(db, COLLECTION_NAME, eventId));
+    } catch (error) {
+      handleFirebaseError(error, 'delete');
+      // Local fallback
+      const events = getLocalEvents();
+      const filtered = events.filter(e => e.id !== eventId);
+      saveLocalEvents(filtered);
     }
   },
 
