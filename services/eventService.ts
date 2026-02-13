@@ -1,17 +1,18 @@
 import { Event, Participant } from '../types';
 import { MOCK_EVENTS } from '../constants';
 import { db } from '../firebaseConfig';
-import { 
-  collection, 
-  getDocs, 
-  addDoc, 
-  doc, 
-  updateDoc, 
-  arrayUnion, 
+import {
+  collection,
+  getDocs,
+  addDoc,
+  doc,
+  updateDoc,
+  arrayUnion,
   getDoc,
   Timestamp,
   query,
-  orderBy
+  orderBy,
+  limit
 } from 'firebase/firestore';
 
 const COLLECTION_NAME = 'events';
@@ -85,15 +86,15 @@ export const eventService = {
       if (querySnapshot.empty) {
         console.log("Database empty. Seeding mock data to Firestore...");
         try {
-            const seedPromises = MOCK_EVENTS.map(event => {
+          const seedPromises = MOCK_EVENTS.map(event => {
             const { id, ...eventData } = event;
             return addDoc(eventsRef, eventData);
-            });
-            await Promise.all(seedPromises);
-            return eventService.getAll();
+          });
+          await Promise.all(seedPromises);
+          return eventService.getAll();
         } catch (seedError) {
-            handleFirebaseError(seedError, 'Seeding');
-            return MOCK_EVENTS;
+          handleFirebaseError(seedError, 'Seeding');
+          return MOCK_EVENTS;
         }
       }
 
@@ -104,7 +105,7 @@ export const eventService = {
 
       // Sync local storage with successful fetch
       saveLocalEvents(events);
-      
+
       return events;
     } catch (error) {
       handleFirebaseError(error, 'getAll');
@@ -114,9 +115,9 @@ export const eventService = {
 
   create: async (eventData: Omit<Event, 'id' | 'participants'>): Promise<Event> => {
     const fallbackEvent: Event = {
-        ...eventData,
-        id: `local-${Date.now()}`,
-        participants: []
+      ...eventData,
+      id: `local-${Date.now()}`,
+      participants: []
     };
 
     try {
@@ -126,7 +127,7 @@ export const eventService = {
         ...eventData,
         participants: []
       });
-      
+
       return {
         id: docRef.id,
         ...eventData,
@@ -135,7 +136,7 @@ export const eventService = {
 
     } catch (error) {
       handleFirebaseError(error, 'create');
-      
+
       const currentEvents = getLocalEvents();
       const updatedEvents = [fallbackEvent, ...currentEvents];
       saveLocalEvents(updatedEvents);
@@ -148,7 +149,7 @@ export const eventService = {
       if (!db) throw new Error("Firebase not initialized");
 
       const eventRef = doc(db, COLLECTION_NAME, eventId);
-      
+
       const newParticipant = {
         ...participantData,
         id: `part-${Date.now()}`,
@@ -168,26 +169,26 @@ export const eventService = {
 
     } catch (error) {
       handleFirebaseError(error, 'addParticipant');
-      
+
       const currentEvents = getLocalEvents();
       const eventIndex = currentEvents.findIndex(e => e.id === eventId);
-      
+
       if (eventIndex === -1) throw new Error("Event not found in local storage");
 
       const fallbackParticipant: Participant = {
-          ...participantData,
-          id: `local-part-${Date.now()}`,
-          confirmedAt: new Date()
+        ...participantData,
+        id: `local-part-${Date.now()}`,
+        confirmedAt: new Date()
       };
 
       const updatedEvent = {
-          ...currentEvents[eventIndex],
-          participants: [fallbackParticipant, ...currentEvents[eventIndex].participants]
+        ...currentEvents[eventIndex],
+        participants: [fallbackParticipant, ...currentEvents[eventIndex].participants]
       };
 
       currentEvents[eventIndex] = updatedEvent;
       saveLocalEvents(currentEvents);
-      
+
       return updatedEvent;
     }
   },
@@ -204,9 +205,23 @@ export const eventService = {
       }
       return undefined;
     } catch (error) {
-       handleFirebaseError(error, 'getById');
-       const localEvents = getLocalEvents();
-       return localEvents.find(e => e.id === id);
+      handleFirebaseError(error, 'getById');
+      const localEvents = getLocalEvents();
+      return localEvents.find(e => e.id === id);
+    }
+  },
+
+  checkConnection: async (): Promise<boolean> => {
+    try {
+      if (!db) return false;
+      const eventsRef = collection(db, COLLECTION_NAME);
+      // Try to fetch just one document to verify access
+      const q = query(eventsRef, limit(1));
+      await getDocs(q);
+      return true;
+    } catch (error) {
+      // Don't log full error to avoid console noise during polling
+      return false;
     }
   }
 };
