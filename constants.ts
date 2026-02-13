@@ -18,7 +18,7 @@ const generateParticipants = (count: number): Participant[] => {
   const participants: Participant[] = [];
   const names = ['Ana Silva', 'Bruno Santos', 'Carla Dias', 'Daniel Oliveira', 'Elena Costa', 'Fábio Lima', 'Gabriela Rocha', 'Hugo Souza'];
   const cities = ['São Paulo', 'Rio de Janeiro', 'Curitiba', 'Belo Horizonte'];
-  
+
   for (let i = 0; i < count; i++) {
     const isMale = i % 2 !== 0;
     participants.push({
@@ -52,7 +52,9 @@ export const MOCK_EVENTS: Event[] = [
     imageUrl: 'https://images.unsplash.com/photo-1533174072545-e8d4aa97edf9?auto=format&fit=crop&q=80&w=1000',
     participantsGoal: 5000,
     organizer: 'SP Cultura',
+    status: 'approved',
     participants: generateParticipants(124),
+    status: 'approved',
   },
   {
     id: '2',
@@ -71,7 +73,9 @@ export const MOCK_EVENTS: Event[] = [
     ticketLink: 'https://example.com',
     participantsGoal: 300,
     organizer: 'Tech PR',
+    status: 'approved',
     participants: generateParticipants(45),
+    status: 'approved',
   },
   {
     id: '3',
@@ -89,7 +93,9 @@ export const MOCK_EVENTS: Event[] = [
     imageUrl: 'https://images.unsplash.com/photo-1552674605-469523fbaf34?auto=format&fit=crop&q=80&w=1000',
     participantsGoal: 2000,
     organizer: 'Rio Run',
+    status: 'approved',
     participants: generateParticipants(310),
+    status: 'approved',
   },
   {
     id: '4',
@@ -107,7 +113,9 @@ export const MOCK_EVENTS: Event[] = [
     imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=1000',
     participantsGoal: 1500,
     organizer: 'Eventos Gastrô',
+    status: 'approved',
     participants: generateParticipants(88),
+    status: 'approved',
   },
   {
     id: '5',
@@ -125,7 +133,9 @@ export const MOCK_EVENTS: Event[] = [
     imageUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=1000',
     participantsGoal: 30,
     organizer: 'Foto Clube BH',
+    status: 'approved',
     participants: generateParticipants(12),
+    status: 'approved',
   },
   {
     id: '6',
@@ -144,7 +154,9 @@ export const MOCK_EVENTS: Event[] = [
     ticketLink: 'https://example.com',
     participantsGoal: 150,
     organizer: 'High Life Rio',
+    status: 'approved',
     participants: generateParticipants(76),
+    status: 'approved',
   }
 ];
 

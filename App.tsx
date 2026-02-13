@@ -9,6 +9,8 @@ import { Event, EventCategory, Participant } from './types';
 import { Search, MapPin, Filter, Loader2 } from 'lucide-react';
 import { CITIES } from './constants';
 import { Footer } from './components/Footer';
+import { AdminLogin } from './components/AdminLogin';
+import { AdminDashboard } from './components/AdminDashboard';
 
 export default function App() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -21,6 +23,25 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState('Todas');
   const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
+
+  // Admin / Routing State
+  const [view, setView] = useState<'home' | 'admin-login' | 'admin-dashboard'>('home');
+
+  useEffect(() => {
+    const checkHash = () => {
+      if (window.location.hash === '#admin') {
+        setView('admin-login');
+      } else {
+        if (view !== 'admin-dashboard') {
+          setView('home');
+        }
+      }
+    };
+
+    checkHash();
+    window.addEventListener('hashchange', checkHash);
+    return () => window.removeEventListener('hashchange', checkHash);
+  }, [view]);
 
   const [connectionStatus, setConnectionStatus] = useState({ isConnected: false, isLoading: true });
 
@@ -115,6 +136,14 @@ export default function App() {
 
   const categories = ['Todas', ...Object.values(EventCategory)];
 
+  if (view === 'admin-login') {
+    return <AdminLogin onLogin={() => setView('admin-dashboard')} />;
+  }
+
+  if (view === 'admin-dashboard') {
+    return <AdminDashboard onLogout={() => { window.location.hash = ''; setView('home'); }} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <Navbar onCreateClick={handleCreateEventClick} />
@@ -185,8 +214,8 @@ export default function App() {
                 key={cat}
                 onClick={() => setSelectedCategory(selectedCategory === cat ? 'Todas' : cat)}
                 className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedCategory === cat
-                    ? 'bg-brand-600 text-white'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
                   }`}
               >
                 {cat}
