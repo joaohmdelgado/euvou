@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { eventService } from '../services/eventService';
 import { Event } from '../types';
-import { Check, X, Trash2, ArrowLeft, Loader2, Calendar, MapPin } from 'lucide-react';
+import { Check, X, Trash2, ArrowLeft, Loader2, Calendar, MapPin, Edit } from 'lucide-react';
 import { format } from 'date-fns';
+import { CreateEventModal } from './CreateEventModal';
 import { ptBR } from 'date-fns/locale';
 
 interface AdminDashboardProps {
@@ -12,6 +13,8 @@ interface AdminDashboardProps {
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     const [events, setEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
     useEffect(() => {
         loadEvents();
@@ -27,6 +30,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             console.error("Failed to load admin events", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleEdit = (event: Event) => {
+        setEditingEvent(event);
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdateSubmit = async (data: any) => {
+        if (!editingEvent) return;
+        try {
+            await eventService.update(editingEvent.id, data);
+            // Update local list
+            setEvents(prev => prev.map(e => e.id === editingEvent.id ? { ...e, ...data } : e));
+            setIsEditModalOpen(false);
+            setEditingEvent(null);
+        } catch (error) {
+            console.error("Failed to update event", error);
+            alert("Erro ao atualizar evento.");
         }
     };
 
@@ -98,6 +120,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                             onApprove={() => handleStatusUpdate(event.id, 'approved')}
                                             onReject={() => handleStatusUpdate(event.id, 'rejected')}
                                             onDelete={() => handleDelete(event.id)}
+                                            onEdit={() => handleEdit(event)}
                                         />
                                     ))}
                                 </div>
@@ -121,6 +144,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                         event={event}
                                         isAdminList
                                         onDelete={() => handleDelete(event.id)}
+                                        onEdit={() => handleEdit(event)}
                                     />
                                 ))}
                             </div>
@@ -140,6 +164,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                                 isRejected
                                                 onApprove={() => handleStatusUpdate(event.id, 'approved')}
                                                 onDelete={() => handleDelete(event.id)}
+                                                onEdit={() => handleEdit(event)}
                                             />
                                         ))}
                                     </div>
@@ -149,12 +174,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     </>
                 )}
             </main>
+
+            <CreateEventModal
+                isOpen={isEditModalOpen}
+                onClose={() => { setIsEditModalOpen(false); setEditingEvent(null); }}
+                onSubmit={handleUpdateSubmit}
+                initialData={editingEvent}
+            />
         </div>
     );
 };
 
 // Subcomponent for Admin Card
-const AdminEventCard = ({ event, onApprove, onReject, onDelete, isAdminList, isRejected }: any) => {
+const AdminEventCard = ({ event, onApprove, onReject, onDelete, onEdit, isAdminList, isRejected }: any) => {
     return (
         <div className={`bg-white rounded-lg shadow border-l-4 ${isAdminList ? 'border-emerald-500' : (isRejected ? 'border-red-500' : 'border-amber-400')} overflow-hidden flex flex-col`}>
             {event.imageUrl && (
@@ -181,6 +213,11 @@ const AdminEventCard = ({ event, onApprove, onReject, onDelete, isAdminList, isR
             </div>
 
             <div className="bg-gray-50 px-4 py-3 flex justify-end items-center gap-2 border-t border-gray-100">
+                {onEdit && (
+                    <button onClick={onEdit} className="p-2 text-blue-600 hover:bg-blue-50 rounded-full" title="Editar">
+                        <Edit className="w-5 h-5" />
+                    </button>
+                )}
                 {onApprove && (
                     <button onClick={onApprove} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full" title="Aprovar">
                         <Check className="w-5 h-5" />

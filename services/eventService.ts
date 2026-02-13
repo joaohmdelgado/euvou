@@ -195,6 +195,36 @@ export const eventService = {
     }
   },
 
+  update: async (eventId: string, eventData: Partial<Omit<Event, 'id' | 'participants'>>): Promise<void> => {
+    try {
+      if (!db) throw new Error("Firebase not initialized");
+      const eventRef = doc(db, COLLECTION_NAME, eventId);
+
+      const updatePayload: any = { ...eventData };
+      // Convert Date objects to Firestore Timestamp if needed, but the SDK usually handles Date objects fine.
+      // However, let's be safe and ensure they are passed as Dates or Timestamps.
+
+      await updateDoc(eventRef, updatePayload);
+
+      // Keep local storage in sync
+      const events = getLocalEvents();
+      const targetIndex = events.findIndex(e => e.id === eventId);
+      if (targetIndex !== -1) {
+        events[targetIndex] = { ...events[targetIndex], ...eventData } as Event;
+        saveLocalEvents(events);
+      }
+    } catch (error) {
+      handleFirebaseError(error, 'update');
+      // Local fallback
+      const events = getLocalEvents();
+      const targetIndex = events.findIndex(e => e.id === eventId);
+      if (targetIndex !== -1) {
+        events[targetIndex] = { ...events[targetIndex], ...eventData } as Event;
+        saveLocalEvents(events);
+      }
+    }
+  },
+
   updateStatus: async (eventId: string, status: 'approved' | 'rejected'): Promise<void> => {
     try {
       if (!db) throw new Error("Firebase not initialized");

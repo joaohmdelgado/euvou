@@ -9,9 +9,10 @@ interface CreateEventModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: any) => Promise<void>;
+  initialData?: any; // Add initialData prop
 }
 
-export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, onSubmit }) => {
+export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, onSubmit, initialData }) => {
   const [step, setStep] = useState<'form' | 'success'>('form');
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -33,7 +34,27 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
     organizer: ''
   };
 
+  // Initialize form data with initialData if present
   const [formData, setFormData] = useState(initialFormState);
+
+  React.useEffect(() => {
+    if (initialData) {
+      // Format date for input type="date"
+      const dateStr = initialData.date instanceof Date
+        ? initialData.date.toISOString().split('T')[0]
+        : new Date(initialData.date).toISOString().split('T')[0];
+
+      setFormData({
+        ...initialFormState,
+        ...initialData,
+        date: dateStr,
+        price: initialData.price || '',
+        // Ensure all fields are present to avoid uncontrolled/controlled warnings
+      });
+    } else {
+      setFormData(initialFormState);
+    }
+  }, [initialData, isOpen]);
 
   if (!isOpen) return null;
 
@@ -132,7 +153,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
         {step === 'form' ? (
           <>
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-              <h2 className="text-lg font-bold text-gray-800">Criar Novo Evento</h2>
+              <h2 className="text-lg font-bold text-gray-800">{initialData ? 'Editar Evento' : 'Criar Novo Evento'}</h2>
               <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200 text-gray-500">
                 <X className="w-5 h-5" />
               </button>
@@ -350,7 +371,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
 
                 <div className="pt-4">
                   <Button type="submit" fullWidth disabled={loading} size="lg">
-                    {loading ? 'Criando Evento...' : 'Publicar Evento'}
+                    {loading ? (initialData ? 'Salvando...' : 'Criando Evento...') : (initialData ? 'Salvar Alterações' : 'Publicar Evento')}
                   </Button>
                 </div>
               </form>
@@ -361,7 +382,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
             <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6 animate-bounce">
               <CheckCircle className="w-10 h-10" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Evento Criado! 🚀</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">{initialData ? 'Evento Atualizado!' : 'Evento Criado!'} 🚀</h3>
             <p className="text-gray-600">Seu evento já está disponível na lista para todos.</p>
           </div>
         )}
