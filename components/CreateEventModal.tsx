@@ -3,6 +3,7 @@ import { X, Upload, CheckCircle, Calendar, MapPin, DollarSign, User, FileText, I
 import { Button } from './ui/Button';
 import { EventCategory } from '../types';
 import { CITIES } from '../constants';
+import { cloudinaryService } from '../services/cloudinaryService';
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -60,11 +61,27 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
       // Parse date and time using native Date with ISO format
       // formData.date is YYYY-MM-DD, startTime is HH:mm
       const dateObj = new Date(`${formData.date}T${formData.startTime}`);
-      
+
       if (isNaN(dateObj.getTime())) {
         alert("Data ou horário inválidos");
         setLoading(false);
         return;
+      }
+
+      let finalImageUrl = formData.imageUrl;
+
+      // Upload to Cloudinary if a file is selected
+      if (formData.photoFile) {
+        try {
+          finalImageUrl = await cloudinaryService.uploadImage(formData.photoFile);
+        } catch (uploadError) {
+          console.error("Image upload failed", uploadError);
+          alert("Falha ao fazer upload da imagem. Tente novamente.");
+          setLoading(false);
+          return;
+        }
+      } else if (!finalImageUrl) {
+        finalImageUrl = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=1000';
       }
 
       const eventData = {
@@ -79,7 +96,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
         category: formData.category,
         price: Number(formData.price) || 0,
         duration: formData.duration,
-        imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=1000',
+        imageUrl: finalImageUrl,
         participantsGoal: Number(formData.participantsGoal),
         organizer: formData.organizer || 'Organizador Anônimo',
       };
@@ -105,13 +122,13 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-      
+
       <div className="relative bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
-        
+
         {step === 'form' ? (
           <>
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
@@ -123,9 +140,9 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
 
             <div className="overflow-y-auto p-6 custom-scrollbar">
               <form onSubmit={handleSubmit} className="space-y-6">
-                
+
                 {/* Image Upload */}
-                <div 
+                <div
                   className="w-full h-48 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-brand-400 hover:bg-brand-50 transition-colors relative overflow-hidden group"
                   onClick={() => fileInputRef.current?.click()}
                 >
@@ -143,11 +160,11 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                       <span className="text-xs mt-1">Clique para upload</span>
                     </div>
                   )}
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={handleFileChange} 
-                    className="hidden" 
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
                     accept="image/*"
                   />
                 </div>
@@ -156,8 +173,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Evento</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       name="title"
                       value={formData.title}
                       onChange={handleInputChange}
@@ -168,9 +185,9 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
-                      <select 
+                      <select
                         name="category"
                         value={formData.category}
                         onChange={handleInputChange}
@@ -183,7 +200,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
-                      <select 
+                      <select
                         name="city"
                         value={formData.city}
                         onChange={handleInputChange}
@@ -199,8 +216,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Data</label>
-                      <input 
-                        type="date" 
+                      <input
+                        type="date"
                         name="date"
                         value={formData.date}
                         onChange={handleInputChange}
@@ -210,8 +227,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Horário</label>
-                      <input 
-                        type="time" 
+                      <input
+                        type="time"
                         name="startTime"
                         value={formData.startTime}
                         onChange={handleInputChange}
@@ -219,10 +236,10 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                         required
                       />
                     </div>
-                     <div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Duração Est.</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="duration"
                         value={formData.duration}
                         onChange={handleInputChange}
@@ -242,8 +259,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Nome do Local</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="locationName"
                         value={formData.locationName}
                         onChange={handleInputChange}
@@ -254,8 +271,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Endereço Completo</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="address"
                         value={formData.address}
                         onChange={handleInputChange}
@@ -269,14 +286,14 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
 
                 {/* Details */}
                 <div className="space-y-4 pt-2 border-t border-gray-100">
-                   <h3 className="text-sm font-bold text-gray-900 flex items-center">
+                  <h3 className="text-sm font-bold text-gray-900 flex items-center">
                     <FileText className="w-4 h-4 mr-1 text-brand-600" />
                     Detalhes
                   </h3>
-                  
+
                   <div>
                     <label className="block text-xs font-medium text-gray-500 mb-1">Descrição</label>
-                    <textarea 
+                    <textarea
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
@@ -291,11 +308,11 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Valor do Ingresso (R$)</label>
                       <div className="relative">
-                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                           <span className="text-xs">R$</span>
                         </div>
-                        <input 
-                          type="number" 
+                        <input
+                          type="number"
                           name="price"
                           value={formData.price}
                           onChange={handleInputChange}
@@ -305,10 +322,10 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                         />
                       </div>
                     </div>
-                     <div>
+                    <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Meta de Participantes</label>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         name="participantsGoal"
                         value={formData.participantsGoal}
                         onChange={handleInputChange}
@@ -316,10 +333,10 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                         placeholder="Ex: 100"
                       />
                     </div>
-                     <div>
+                    <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Organizador</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="organizer"
                         value={formData.organizer}
                         onChange={handleInputChange}
