@@ -54,7 +54,6 @@ export const MOCK_EVENTS: Event[] = [
     organizer: 'SP Cultura',
     status: 'approved',
     participants: generateParticipants(124),
-    status: 'approved',
   },
   {
     id: '2',
@@ -75,7 +74,6 @@ export const MOCK_EVENTS: Event[] = [
     organizer: 'Tech PR',
     status: 'approved',
     participants: generateParticipants(45),
-    status: 'approved',
   },
   {
     id: '3',
@@ -95,7 +93,6 @@ export const MOCK_EVENTS: Event[] = [
     organizer: 'Rio Run',
     status: 'approved',
     participants: generateParticipants(310),
-    status: 'approved',
   },
   {
     id: '4',
@@ -115,7 +112,6 @@ export const MOCK_EVENTS: Event[] = [
     organizer: 'Eventos Gastrô',
     status: 'approved',
     participants: generateParticipants(88),
-    status: 'approved',
   },
   {
     id: '5',
@@ -135,7 +131,6 @@ export const MOCK_EVENTS: Event[] = [
     organizer: 'Foto Clube BH',
     status: 'approved',
     participants: generateParticipants(12),
-    status: 'approved',
   },
   {
     id: '6',
@@ -156,7 +151,6 @@ export const MOCK_EVENTS: Event[] = [
     organizer: 'High Life Rio',
     status: 'approved',
     participants: generateParticipants(76),
-    status: 'approved',
   }
 ];
 
