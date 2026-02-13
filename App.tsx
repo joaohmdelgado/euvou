@@ -30,7 +30,9 @@ export default function App() {
   useEffect(() => {
     const checkHash = () => {
       if (window.location.hash === '#admin') {
-        setView('admin-login');
+        if (view !== 'admin-dashboard') {
+          setView('admin-login');
+        }
       } else {
         if (view !== 'admin-dashboard') {
           setView('home');
