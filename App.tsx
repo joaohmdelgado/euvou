@@ -59,8 +59,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadEvents();
-  }, []);
+    if (view === 'home') {
+      loadEvents();
+    }
+  }, [view]);
 
   const loadEvents = async () => {
     setLoading(true);
