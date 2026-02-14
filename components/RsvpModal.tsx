@@ -168,7 +168,7 @@ export const RsvpModal: React.FC<RsvpModalProps> = ({ event, isOpen, onClose, on
                   onChange={handleFileChange}
                   className="hidden"
                   accept="image/*"
-                  required
+                  required={!formData.photoPreview}
                 />
                 <p className="text-xs text-gray-500">Clique para adicionar uma foto (obrigatório)</p>
               </div>
